@@ -3,17 +3,19 @@ const port = parseInt(process.env.PORT, 10) || 3000;
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const logger = require("morgan");
-const express = require("express")();
+const express = require("express");
+const server = express();
+const path = require("path");
 
 let windows = [];
 
-express.use(cors());
-express.use(bodyParser.json());
-express.use(bodyParser.urlencoded({ extended: true }));
-express.use(logger("dev"));
+server.use(cors());
+server.use(bodyParser.json());
+server.use(bodyParser.urlencoded({ extended: true }));
+server.use(logger("dev"));
 
 // Add new window
-express.post("/windows", async (req, res) => {
+server.post("/windows", async (req, res) => {
   const { counter } = req.body;
   windows.push({ counter: counter, status: false, number: 0 });
   res.json({
@@ -22,7 +24,7 @@ express.post("/windows", async (req, res) => {
 });
 
 // Update serving
-express.put("/windows", async (req, res) => {
+server.put("/windows", async (req, res) => {
   const { index, counter, status, number } = req.body;
 
   windows[index].counter = counter;
@@ -34,7 +36,7 @@ express.put("/windows", async (req, res) => {
   });
 });
 
-express.delete("/windows", async (req, res) => {
+server.delete("/windows", async (req, res) => {
   const { index } = req.body;
   windows.splice(index, 1);
   res.json({
@@ -43,12 +45,22 @@ express.delete("/windows", async (req, res) => {
 });
 
 // Get current window
-express.get("/windows", async (req, res) => {
+server.get("/windows", async (req, res) => {
   res.json({
     windows: windows
   });
 });
 
-express.listen(port, () =>
+
+// Serve the static files from the React app
+server.use(express.static(path.join(__dirname, "client/queuing/build")));
+
+// Handles any requests that don't match the ones above
+server.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname + "/client/queuing/build/index.html"));
+});
+
+
+server.listen(port, () =>
   console.log(`Server server running on host: http://localhost:${port}`)
 );
