@@ -8,11 +8,38 @@ const server = express();
 const path = require("path");
 
 let windows = [];
+let server_banner = "";
+let server_youtube_link = "";
 
 server.use(cors());
 server.use(bodyParser.json());
 server.use(bodyParser.urlencoded({ extended: true }));
 server.use(logger("dev"));
+
+server.post("/windows/banner", async (req, res) => {
+  const { banner } = req.body;
+  console.log(banner);
+  server_banner = banner;
+  res.json({
+    message: "success"
+  });
+});
+
+server.get("/windows/banner", async (req, res) => {
+  return res.json({ banner: server_banner });
+});
+
+server.get("/windows/youtube_link", async (req, res) => {
+  return res.json({ youtube_link: server_youtube_link });
+});
+
+server.post("/windows/youtube_link", async (req, res) => {
+  const { youtube_link } = req.body;
+  server_youtube_link = youtube_link;
+  res.json({
+    message: "success"
+  });
+});
 
 // Add new window
 server.post("/windows", async (req, res) => {
@@ -51,7 +78,6 @@ server.get("/windows", async (req, res) => {
   });
 });
 
-
 // Serve the static files from the React app
 server.use(express.static(path.join(__dirname, "client/queuing/build")));
 
@@ -59,7 +85,6 @@ server.use(express.static(path.join(__dirname, "client/queuing/build")));
 server.get("*", (req, res) => {
   res.sendFile(path.join(__dirname + "/client/queuing/build/index.html"));
 });
-
 
 server.listen(port, () =>
   console.log(`Server server running on host: http://localhost:${port}`)
